@@ -82,6 +82,9 @@ create database test on user_file_test1
 go
 exec master..sp_dboption test, 'allow nulls by default', true
 exec master..sp_dboption test, 'trunc log on chkpt', true
+exec master..sp_dboption test, 'abort tran on log full', true
+exec master..sp_dboption test, 'ddl in tran', true
+
 go
 use test
 exec sp_addlogin 'test', 'Test123', 'test'
@@ -98,3 +101,5 @@ su -l -c "isql -S SYBTEST -U sa -P Sybase123 -i /tmp/aseconf" sybase
 su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST" sybase
 
 # Run again
+su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST &" sybase
+
