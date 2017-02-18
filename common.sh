@@ -84,6 +84,7 @@ exec master..sp_dboption test, 'allow nulls by default', true
 exec master..sp_dboption test, 'trunc log on chkpt', true
 exec master..sp_dboption test, 'abort tran on log full', true
 exec master..sp_dboption test, 'ddl in tran', true
+exec master..sp_dboption test, 'select into/bulkcopy','true'
 
 go
 use test
@@ -101,5 +102,9 @@ su -l -c "isql -S SYBTEST -U sa -P Sybase123 -i /tmp/aseconf" sybase
 su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST" sybase
 
 # Run again
-su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST &" sybase
+su -l -c "nohup /opt/sybase/ASE-16_0/install/RUN_SYBTEST &" sybase
+
+# Add to start automatically
+chmod a+x /etc/rc.local
+echo "nohup /opt/sybase/ASE-16_0/install/RUN_SYBTEST &" >> /etc/rc.local
 
