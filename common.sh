@@ -11,7 +11,9 @@ if [ ! -f /vagrant/.installed ]; then
 
 	if [ -d /vagrant/deb ]; then
 		# Install from cache
-		dpkg -i /vagrant/deb/*.deb
+		dpkg --add-architecture i386	
+		dpkg -G -E -i /vagrant/deb/*.deb
+		dpkg -G -E -i /vagrant/deb/*.deb
 	fi
 
 	if [ ! -d /vagrant/deb ]; then
@@ -102,9 +104,8 @@ su -l -c "isql -S SYBTEST -U sa -P Sybase123 -i /tmp/aseconf" sybase
 su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST" sybase
 
 # Run again
-su -l -c "nohup /opt/sybase/ASE-16_0/install/RUN_SYBTEST &" sybase
-
-# Add to start automatically
+echo "echo su -l -c /opt/sybase/ASE-16_0/install/RUN_SYBTEST sybase | at now" > /etc/rc.local
 chmod a+x /etc/rc.local
-echo "nohup /opt/sybase/ASE-16_0/install/RUN_SYBTEST &" >> /etc/rc.local
+service rc.local start
+
 
