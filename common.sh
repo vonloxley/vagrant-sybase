@@ -39,7 +39,7 @@ chown sybase.sybase /opt/sybase
 
 if [ ! -d /opt/sybase/ASE-16_0 ]; then
 	echo "Installing Sybase ASE"
-	cd ASE_Suite
+	cd /vagrant/ASE_Suite
 	su -c "./setup.bin -f ../response.txt -i silent -DAGREE_TO_SAP_LICENSE=true" sybase
 fi
 
