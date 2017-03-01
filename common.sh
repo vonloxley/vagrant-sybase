@@ -5,27 +5,21 @@ if [ ! -d ASE_Suite ]; then
 	tar -xzvf ASE_Suite.linuxamd64.tgz
 fi
 
-
-if [ ! -f /vagrant/.installed ]; then
-	touch /vagrant/.installed
-
-	if [ -d /vagrant/deb ]; then
-		# Install from cache
-		dpkg --add-architecture i386	
-		dpkg -G -E -i /vagrant/deb/*.deb
-		dpkg -G -E -i /vagrant/deb/*.deb
-	fi
-
-	if [ ! -d /vagrant/deb ]; then
-		dpkg --add-architecture i386	
-		apt-get update
-		apt-get upgrade -y
-		apt-get install -y libaio1 libc6:i386 libncurses5:i386 libstdc++6:i386
-		mkdir -p /vagrant/deb
-		rm -Rf /vagrant/deb/*.deb
-		cp /var/cache/apt/archives/*.deb /vagrant/deb/
-	fi
+if [ ! -d /vagrant/deb ]; then
+	dpkg --add-architecture i386	
+    apt-get update
+    apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade -y
+else
+	dpkg --add-architecture i386	
+    rm -Rf /vagrant/deb/Packages*
+    apt-ftparchive packages /vagrant/deb | sed -re "s/\\/vagrant\/deb\///g" > /vagrant/deb/Packages
+    gzip /vagrant/deb/Packages
+    echo "deb file:/vagrant/deb /" >/etc/apt/sources.list
+    echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/noauth
+    apt-get update
 fi
+
+apt-get install -y libaio1 libc6:i386 libncurses5:i386 libstdc++6:i386
 
 echo "kernel.shmmax = 300000000" >> /etc/sysctl.conf
 sysctl -p
@@ -108,4 +102,8 @@ echo "echo su -l -c /opt/sybase/ASE-16_0/install/RUN_SYBTEST sybase | at now" > 
 chmod a+x /etc/rc.local
 service rc.local start
 
-
+# Save all *.deb for offline install next time
+if [ ! -d /vagrant/deb ]; then
+	mkdir -p /vagrant/deb
+	cp /var/cache/apt/archives/*.deb /vagrant/deb/
+fi
