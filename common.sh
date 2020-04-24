@@ -2,34 +2,25 @@
 
 cd /vagrant
 if [ ! -d ASE_Suite ]; then
-	tar -xzvf ASE_Suite.linuxamd64.tgz
+	mkdir ASE_Suite
+	cd ASE_Suite
+	tar -xzvf ../ASE_Suite.linuxamd64.tgz
+	cd ..
 fi
 
-if [ ! -d /vagrant/deb ]; then
-	dpkg --add-architecture i386	
-    apt-get update
-    apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade -y
-else
-	dpkg --add-architecture i386	
-    rm -Rf /vagrant/deb/Packages*
-    apt-ftparchive packages /vagrant/deb | sed -re "s/\\/vagrant\/deb\///g" > /vagrant/deb/Packages
-    gzip /vagrant/deb/Packages
-    echo "deb file:/vagrant/deb /" >/etc/apt/sources.list
-    echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/noauth
-    apt-get update
-fi
-
-apt-get install -y libaio1 libc6:i386 libncurses5:i386 libstdc++6:i386
 
 echo "kernel.shmmax = 300000000" >> /etc/sysctl.conf
 sysctl -p
 
-groupadd -g 500 sybase
-useradd -g sybase -G admin -d /opt/sybase -u 500 sybase
+groupadd sybase
+useradd -g sybase -d /opt/sybase sybase
 echo "sybase:Sybase123" | sudo chpasswd
 
 mkdir -p /opt/sybase
 chown sybase.sybase /opt/sybase
+
+yum -y install unzip at
+/etc/init.d/atd start
 
 if [ ! -d /opt/sybase/ASE-16_0 ]; then
 	echo "Installing Sybase ASE"
@@ -44,7 +35,7 @@ cp /vagrant/sqlsrv.res /opt/sybase/ASE-16_0/
 MYIP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`
 echo $MYIP sybtest >> /etc/hosts
 
-echo source ./SYBASE.sh >>/opt/sybase/.profile
+echo source /opt/sybase/SYBASE.sh >>/opt/sybase/.bashrc
 
 cat <<EOF >/tmp/asestop
 shutdown
@@ -98,12 +89,6 @@ su -l -c "isql -S SYBTEST -U sa -P Sybase123 -i /tmp/aseconf" sybase
 su -l -c "/opt/sybase/ASE-16_0/install/RUN_SYBTEST" sybase
 
 # Run again
-echo "echo su -l -c /opt/sybase/ASE-16_0/install/RUN_SYBTEST sybase | at now" > /etc/rc.local
-chmod a+x /etc/rc.local
-service rc.local start
+echo "echo su -l -c /opt/sybase/ASE-16_0/install/RUN_SYBTEST sybase | at now" >> /etc/rc.d/rc.local
 
-# Save all *.deb for offline install next time
-if [ ! -d /vagrant/deb ]; then
-	mkdir -p /vagrant/deb
-	cp /var/cache/apt/archives/*.deb /vagrant/deb/
-fi
+bash /etc/rc.d/rc.local
