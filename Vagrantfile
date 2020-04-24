@@ -1,5 +1,5 @@
 Vagrant.configure(2) do |config|
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "bento/centos-6.10"
   config.vm.hostname = "dockerhost"
   config.ssh.insert_key = true
   config.ssh.forward_agent = true
