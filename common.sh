@@ -36,6 +36,7 @@ MYIP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*
 echo $MYIP sybtest >> /etc/hosts
 
 echo source /opt/sybase/SYBASE.sh >>/opt/sybase/.bashrc
+source /opt/sybase/SYBASE.sh
 
 cat <<EOF >/tmp/asestop
 shutdown
